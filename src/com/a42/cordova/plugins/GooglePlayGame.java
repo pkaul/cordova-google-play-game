@@ -30,6 +30,7 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.a42.cordova.plugins.GameHelper.GameHelperListener;
@@ -54,6 +55,7 @@ public class GooglePlayGame extends CordovaPlugin implements GameHelperListener 
     private static final String ACTION_INCREMENT_ACHIEVEMENT = "incrementAchievement";
     private static final String ACTION_SHOW_ACHIEVEMENTS = "showAchievements";
     private static final String ACTION_SHOW_PLAYER = "showPlayer";
+    private static final String ACTION_SHOW_ACCESSTOKEN = "showAccessToken";
 
     private static final int ACTIVITY_CODE_SHOW_LEADERBOARD = 0;
     private static final int ACTIVITY_CODE_SHOW_ACHIEVEMENTS = 1;
@@ -125,6 +127,8 @@ public class GooglePlayGame extends CordovaPlugin implements GameHelperListener 
             executeIncrementAchievement(options, callbackContext);
         } else if (ACTION_SHOW_PLAYER.equals(action)) {
             executeShowPlayer(callbackContext);
+        } else if (ACTION_SHOW_ACCESSTOKEN.equals(action)) {
+            executeShowAccessToken(callbackContext);
         } else {
             return false; // Tried to execute an unknown method
         }
@@ -330,6 +334,31 @@ public class GooglePlayGame extends CordovaPlugin implements GameHelperListener 
                 }
             }
         });
+    }
+
+    private void executeShowAccessToken(final CallbackContext callbackContext) {
+        Log.d(LOGTAG, "executeShowAccessToken");
+
+        if (gameHelper.isSignedIn()) {
+
+            // executing this via cordova.getActivity().runOnUiThread causes an error!
+            AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
+                @Override
+                protected String doInBackground(Void... params) {
+                    return gameHelper.getAccessToken();
+                }
+
+                @Override
+                protected void onPostExecute(String token) {
+                    Log.d(LOGTAG, "Access token retrieved:" + token);
+                    callbackContext.success(token);
+                }
+            };
+            task.execute();
+        } else {
+            Log.w(LOGTAG, "executeShowPlayer: not yet signed in");
+            callbackContext.error("executeShowPlayer: not yet signed in");
+        }
     }
 
 

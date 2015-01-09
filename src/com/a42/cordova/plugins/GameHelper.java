@@ -31,8 +31,10 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.google.android.gms.appstate.AppStateManager;
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Api.ApiOptions.NoOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
@@ -1064,4 +1066,27 @@ public class GameHelper implements GoogleApiClient.ConnectionCallbacks,
         debugLog("Forcing mConnectOnStart=" + connectOnStart);
         mConnectOnStart = connectOnStart;
     }
+
+    /**
+     * Fetches an access token that is suitable to access the /me endpoint.
+     * @return The token or null if this couldn't be accessed.
+     */
+    public String getAccessToken() {
+
+        String token = null;
+        try {
+
+            String gamesAccountName = Games.getCurrentAccountName(mGoogleApiClient);
+            //Log.i(TAG, "Account Name: "+gamesAccountName);
+            // requires permission <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+            token = GoogleAuthUtil.getToken(this.mActivity, gamesAccountName, "oauth2:" + Scopes.PLUS_ME);
+        } catch (Exception e) {
+            Log.e(TAG, "Error fetching access token", e);
+        }
+
+        return token;
+    }
+
+
+
 }
